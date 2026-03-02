@@ -5,7 +5,7 @@ import * as Yup from 'yup';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createNote } from '@/lib/api';
 
-interface Props {
+interface NoteFormProps {
   onClose: () => void;
 }
 
@@ -15,7 +15,7 @@ const NoteSchema = Yup.object({
   tag: Yup.string().required(),
 });
 
-export default function NoteForm({ onClose }: Props) {
+export default function NoteForm({ onClose }: NoteFormProps) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
