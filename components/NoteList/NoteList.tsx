@@ -1,15 +1,15 @@
 'use client';
 
-import { Note } from '@/types/note';
-import { deleteNote } from '@/lib/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { deleteNote } from '@/lib/api';
+import { Note } from '@/types/note';
 import Link from 'next/link';
 
-interface Props {
+interface NoteListProps {
   notes: Note[];
 }
 
-export default function NoteList({ notes }: Props) {
+export default function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -26,12 +26,9 @@ export default function NoteList({ notes }: Props) {
           <Link href={`/notes/${note.id}`}>
             <h3>{note.title}</h3>
           </Link>
-
+          <p>{note.content}</p>
           <p>{note.tag}</p>
-
-          <button onClick={() => mutation.mutate(note.id)} disabled={mutation.isPending}>
-            Delete
-          </button>
+          <button onClick={() => mutation.mutate(note.id)}>Delete</button>
         </li>
       ))}
     </ul>

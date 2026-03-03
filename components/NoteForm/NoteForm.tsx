@@ -2,22 +2,23 @@
 
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { createNote } from '@/lib/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createNote } from '@/lib/api';
+import { NoteTag } from '@/types/note';
 
-interface Props {
+interface NoteFormProps {
   onClose: () => void;
 }
 
 const validationSchema = Yup.object({
-  title: Yup.string().required('Title is required').max(50, 'Max 50 characters'),
-
-  content: Yup.string().max(500, 'Max 500 characters').nullable(),
-
-  tag: Yup.string().oneOf(['Todo', 'Work', 'Personal', 'Meeting']).required('Tag is required'),
+  title: Yup.string().max(50, 'Max 50 characters').required('Required'),
+  content: Yup.string().max(500, 'Max 500 characters'),
+  tag: Yup.mixed<NoteTag>()
+    .oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'])
+    .required('Required'),
 });
 
-export default function NoteForm({ onClose }: Props) {
+export default function NoteForm({ onClose }: NoteFormProps) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -33,39 +34,34 @@ export default function NoteForm({ onClose }: Props) {
       initialValues={{
         title: '',
         content: '',
-        tag: 'Todo',
+        tag: 'Todo' as NoteTag,
       }}
       validationSchema={validationSchema}
       onSubmit={values => mutation.mutate(values)}
     >
       <Form>
         <div>
-          <label>Title</label>
-          <Field name="title" />
+          <Field name="title" placeholder="Title" />
           <ErrorMessage name="title" component="div" />
         </div>
 
         <div>
-          <label>Content</label>
-          <Field as="textarea" name="content" />
+          <Field as="textarea" name="content" placeholder="Content" />
           <ErrorMessage name="content" component="div" />
         </div>
 
         <div>
-          <label>Tag</label>
           <Field as="select" name="tag">
             <option value="Todo">Todo</option>
             <option value="Work">Work</option>
             <option value="Personal">Personal</option>
             <option value="Meeting">Meeting</option>
+            <option value="Shopping">Shopping</option>
           </Field>
           <ErrorMessage name="tag" component="div" />
         </div>
 
-        <button type="submit" disabled={mutation.isPending}>
-          Create
-        </button>
-
+        <button type="submit">Create</button>
         <button type="button" onClick={onClose}>
           Cancel
         </button>

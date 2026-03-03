@@ -4,11 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchNoteById } from '@/lib/api';
 import { Note } from '@/types/note';
 
-interface Props {
+interface NoteDetailsClientProps {
   id: string;
 }
 
-export default function NoteDetails({ id }: Props) {
+export default function NoteDetailsClient({ id }: NoteDetailsClientProps) {
   const { data, isLoading, error } = useQuery<Note>({
     queryKey: ['note', id],
     queryFn: () => fetchNoteById(id),
@@ -22,7 +22,9 @@ export default function NoteDetails({ id }: Props) {
     <div>
       <h2>{data.title}</h2>
       <p>{data.content}</p>
-      <p>{data.tag}</p>
+      <p>Tag: {data.tag}</p>
+      <p>Created: {new Date(data.createdAt).toLocaleString()}</p>
+      <p>Updated: {new Date(data.updatedAt).toLocaleString()}</p>
     </div>
   );
 }
