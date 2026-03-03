@@ -2,48 +2,61 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useDebouncedCallback } from 'use-debounce';
-
 import { fetchNotes } from '@/lib/api';
+import { FetchNotesResponse } from '@/types/api';
 import NoteList from '@/components/NoteList/NoteList';
-import Pagination from '@/components/Pagination/Pagination';
-import SearchBox from '@/components/SearchBox/SearchBox';
-import { FetchNotesResponse } from '@/types/note';
+import Modal from '@/components/Modal/Modal';
+import NoteForm from '@/components/NoteForm/NoteForm';
 
 export default function NotesClient() {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-
-  const debounced = useDebouncedCallback((value: string) => {
-    setPage(1);
-    setDebouncedSearch(value);
-  }, 500);
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    debounced(value);
-  };
+  const [search] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery<FetchNotesResponse>({
-    queryKey: ['notes', page, debouncedSearch],
-    queryFn: () => fetchNotes(page, debouncedSearch),
-    placeholderData: previousData => previousData,
+    queryKey: ['notes', page, search],
+    queryFn: () => fetchNotes(page, search),
+    placeholderData: prev => prev,
   });
 
-  if (isLoading) return <p>Loading, please wait...</p>;
-  if (error || !data) return <p>Something went wrong.</p>;
+  const handlePrevPage = () => {
+    setPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    if (data && page < data.totalPages) {
+      setPage(prev => prev + 1);
+    }
+  };
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error || !data) return <p>Error loading notes</p>;
 
   return (
     <>
-      <header>
-        <SearchBox value={search} onChange={handleSearchChange} />
-      </header>
+      <button onClick={() => setIsModalOpen(true)}>Create note</button>
 
-      {data.notes.length > 0 && <NoteList notes={data.notes} />}
+      <NoteList notes={data.notes} />
 
-      {data.totalPages > 1 && (
-        <Pagination totalPages={data.totalPages} currentPage={page} onPageChange={setPage} />
+      {/* ✅ Pagination */}
+      <div style={{ marginTop: '20px' }}>
+        <button onClick={handlePrevPage} disabled={page === 1}>
+          Prev
+        </button>
+
+        <span style={{ margin: '0 10px' }}>
+          Page {page} of {data.totalPages}
+        </span>
+
+        <button onClick={handleNextPage} disabled={page === data.totalPages}>
+          Next
+        </button>
+      </div>
+
+      {isModalOpen && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <NoteForm onClose={() => setIsModalOpen(false)} />
+        </Modal>
       )}
     </>
   );

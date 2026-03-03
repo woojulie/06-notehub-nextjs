@@ -1,21 +1,23 @@
 'use client';
 
-import { Formik, Form, Field } from 'formik';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createNote } from '@/lib/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-interface NoteFormProps {
+interface Props {
   onClose: () => void;
 }
 
-const NoteSchema = Yup.object({
-  title: Yup.string().min(3).required(),
-  content: Yup.string().min(5).required(),
-  tag: Yup.string().required(),
+const validationSchema = Yup.object({
+  title: Yup.string().required('Title is required').max(50, 'Max 50 characters'),
+
+  content: Yup.string().max(500, 'Max 500 characters').nullable(),
+
+  tag: Yup.string().oneOf(['Todo', 'Work', 'Personal', 'Meeting']).required('Tag is required'),
 });
 
-export default function NoteForm({ onClose }: NoteFormProps) {
+export default function NoteForm({ onClose }: Props) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -28,21 +30,45 @@ export default function NoteForm({ onClose }: NoteFormProps) {
 
   return (
     <Formik
-      initialValues={{ title: '', content: '', tag: 'Todo' }}
-      validationSchema={NoteSchema}
+      initialValues={{
+        title: '',
+        content: '',
+        tag: 'Todo',
+      }}
+      validationSchema={validationSchema}
       onSubmit={values => mutation.mutate(values)}
     >
       <Form>
-        <Field name="title" placeholder="Title" />
-        <Field name="content" placeholder="Content" />
-        <Field as="select" name="tag">
-          <option value="Todo">Todo</option>
-          <option value="Work">Work</option>
-          <option value="Personal">Personal</option>
-          <option value="Meeting">Meeting</option>
-          <option value="Shopping">Shopping</option>
-        </Field>
-        <button type="submit">Create</button>
+        <div>
+          <label>Title</label>
+          <Field name="title" />
+          <ErrorMessage name="title" component="div" />
+        </div>
+
+        <div>
+          <label>Content</label>
+          <Field as="textarea" name="content" />
+          <ErrorMessage name="content" component="div" />
+        </div>
+
+        <div>
+          <label>Tag</label>
+          <Field as="select" name="tag">
+            <option value="Todo">Todo</option>
+            <option value="Work">Work</option>
+            <option value="Personal">Personal</option>
+            <option value="Meeting">Meeting</option>
+          </Field>
+          <ErrorMessage name="tag" component="div" />
+        </div>
+
+        <button type="submit" disabled={mutation.isPending}>
+          Create
+        </button>
+
+        <button type="button" onClick={onClose}>
+          Cancel
+        </button>
       </Form>
     </Formik>
   );
