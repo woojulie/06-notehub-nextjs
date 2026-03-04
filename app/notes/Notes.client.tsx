@@ -11,12 +11,12 @@ import Pagination from '@/components/Pagination/Pagination';
 import SearchBox from '@/components/SearchBox/SearchBox';
 
 export default function NotesClient() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [page, setPage] = useState<number>(1);
+  const [search, setSearch] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  // debounce
+  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
@@ -43,7 +43,10 @@ export default function NotesClient() {
 
       {data.notes.length > 0 && <NoteList notes={data.notes} />}
 
-      <Pagination currentPage={page} totalPages={data.totalPages} onPageChange={setPage} />
+      {/* ✅ Pagination рендериться тільки якщо більше 1 сторінки */}
+      {data.totalPages > 1 && (
+        <Pagination currentPage={page} totalPages={data.totalPages} onPageChange={setPage} />
+      )}
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
